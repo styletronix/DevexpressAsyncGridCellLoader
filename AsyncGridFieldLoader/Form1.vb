@@ -3,11 +3,13 @@
 Public Class Form1
     Private WithEvents _asyncHelper As GridAsyncHelper
     Public Sub New()
-
         ' Dieser Aufruf ist für den Designer erforderlich.
         InitializeComponent()
 
         'Initialize the AsyncHelper with 4 threads and KeyField "ID" to enable caching of loaded values on sorting, filtering and grouping
+        ' If no KeyField is specified, cell data will be reloaded whenever sorting, filtering, or grouping occurs.
+        ' When using an InstantFeedbackSource as the grid’s DataSource, it is recommended NOT to set a KeyField,
+        ' because the underlying data is fetched on demand, which can significantly slow down the InstantFeedbackSource.
         Me._asyncHelper = New GridAsyncHelper(Me.GridView1, ThreadsCount:=4, KeyField:=NameOf(MyDataItem.ID))
         Me._asyncHelper.loadingImage = Me.SvgImageCollection1.GetImage("loading") 'Optional: set a loading image to be displayed for images while data is being loaded
     End Sub
