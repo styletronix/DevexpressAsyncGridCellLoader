@@ -71,8 +71,11 @@ For image columns, use `RepositoryItemPictureEdit` or `RepositoryItemImageEdit` 
 
 ## Persistent Cache via `KeyField`
 
-If your data source has a stable unique key, specify it via the constructor parameter.  
-This enables cache persistence even when sorting or grouping changes.
+If your data source has a stable unique key, specify it through the constructor parameter.
+This allows cached values to persist even when sorting or grouping changes occur.
+
+Note: Do not use KeyField with InstantFeedbackDataSource objects.
+Accessing the key value will trigger immediate data retrieval, which defeats the purpose and performance advantages of Instant Feedback mode.
 
 ```vb
 _asyncHelper = New GridAsyncHelper(MyGridView, KeyField:=NameOf(MyItem.ID))
