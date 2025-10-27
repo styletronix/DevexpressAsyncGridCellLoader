@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Threading.Tasks
 Imports DevExpress.XtraGrid.Views.Base
 Imports DevExpress.XtraGrid.Views.Grid.ViewInfo
 
@@ -145,8 +146,9 @@ Public Class GridAsyncHelper
     Private CTS As New System.Threading.CancellationTokenSource
     Private ReadOnly SynchronisationContext As System.Threading.SynchronizationContext
     Private AsyncTasks As New List(Of WorkerItem)
-    Private firstVisibleRowHandle As Int64
-    Private lastVisibleRowHandle As Int64
+    Private firstVisibleIndex As Int64
+    Private lastVisibleIndex As Int64
+
     Private Sub UpdateVisibleRowHandles()
         Dim vi As GridViewInfo = Me.GridView.GetViewInfo
         Dim visibleRows = New List(Of Object)
@@ -155,11 +157,12 @@ Public Class GridAsyncHelper
         Dim normalRows = rows.Where(Function(a) a.IsSpecialRow = False).ToList()
 
         If normalRows.Count = 0 Then
-            firstVisibleRowHandle = 0
-            lastVisibleRowHandle = 0
+            firstVisibleIndex = 0
+            lastVisibleIndex = Int64.MaxValue
         Else
-            firstVisibleRowHandle = Me.GridView.GetVisibleRowHandle(normalRows.Min(Function(a) a.VisibleIndex))
-            lastVisibleRowHandle = Me.GridView.GetVisibleRowHandle(normalRows.Max(Function(a) a.VisibleIndex))
+            firstVisibleIndex = normalRows.Min(Function(a) a.VisibleIndex)
+            lastVisibleIndex = normalRows.Max(Function(a) a.VisibleIndex)
+            If lastVisibleIndex <= 0 Then lastVisibleIndex = Int64.MaxValue
         End If
     End Sub
 #Region "Event Handlers"
@@ -307,7 +310,7 @@ Public Class GridAsyncHelper
                                              .KeyValue = KeyValue,
                                              .JobID = JobID}) Then
 
-                                If e.Column.UnboundDataType = GetType(String) Then
+                                If e.Column.UnboundDataType = GetType(String) OrElse e.Column.ColumnType = GetType(String) Then
                                     e.Value = "Loading..."
 
                                 Else
@@ -365,6 +368,8 @@ Public Class GridAsyncHelper
                         Dim rowhandle As Integer
                         Dim loaded As Boolean
                         Dim row As Object = Nothing
+                        Dim visibleIndex As Integer
+
                         If item.GridView.GridControl Is Nothing Then Continue Do
 
                         'Get Grid Data
@@ -373,10 +378,11 @@ Public Class GridAsyncHelper
                             rowhandle = item.GridView.GetRowHandle(item.ListSourceRowIndex)
                             loaded = item.GridView.IsRowLoaded(rowhandle)
                             row = item.GridView.GetRow(rowhandle)
+                            visibleIndex = item.GridView.GetVisibleIndex(rowhandle)
                         End Sub)
 
                         'Skip if row is not visible
-                        If rowhandle < firstVisibleRowHandle Or rowhandle > lastVisibleRowHandle Then Continue Do
+                        If visibleIndex < firstVisibleIndex Or visibleIndex > lastVisibleIndex Then Continue Do
 
                         If loaded Then
                             If row Is Nothing Then Continue Do
@@ -481,13 +487,13 @@ Public Class GridAsyncHelper
 
             pi = result.GetType.GetProperty(s)
 
-            If ind <split.Length Then
+            If ind < split.Length Then
                 If pi Is Nothing Then
-            Return
-        Else
-            result = pi.GetValue(result, Nothing)
-        End If
-        End If
+                    Return
+                Else
+                    result = pi.GetValue(result, Nothing)
+                End If
+            End If
         Next
 
         If pi IsNot Nothing Then
