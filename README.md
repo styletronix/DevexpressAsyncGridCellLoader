@@ -99,6 +99,32 @@ _asyncHelper.WorkerThreadsCount = 4
 _asyncHelper.WorkerThreadsCount = 1
 ```
 
+## Lifecycle & Detail Grid Support
+
+The `GridAsyncHelper` can be **safely detached and reattached** at any time.  
+Simply call `Dispose()` to remove all event handlers, stop background workers, and release resources.  
+If needed, you can create a new instance and attach it again without restarting the application.
+
+```vb
+_asyncHelper?.Dispose()
+_asyncHelper = New GridAsyncHelper(MyGridView, KeyField:=NameOf(MyItem.ID))
+```
+
+## Detail Grids (Master–Detail Support)
+
+The helper fully supports DetailGridViews in master–detail relationships.
+However, you must manually attach a separate GridAsyncHelper instance for each detail view.
+
+```vb
+AddHandler masterGridView.MasterRowExpanded, Sub(sender, e)
+    Dim detailView = CType(masterGridView.GetDetailView(e.RowHandle, e.RelationIndex), GridView)
+    Dim detailHelper = New GridAsyncHelper(detailView, KeyField:="ID")
+    ' Optionally keep track of helpers for cleanup
+End Sub
+```
+
+This ensures that asynchronous loading works independently in each nested grid level.
+
 ---
 
 ## API Reference (Summary)
