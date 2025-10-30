@@ -74,7 +74,7 @@ For image columns, use `RepositoryItemPictureEdit` or `RepositoryItemImageEdit` 
 If your data source has a stable unique key, specify it through the constructor parameter.
 This allows cached values to persist even when sorting or grouping changes occur.
 
-Note: Do not use KeyField with InstantFeedbackDataSource objects.
+Note: **Do not use KeyField with InstantFeedbackDataSource**.
 Accessing the key value will trigger immediate data retrieval, which defeats the purpose and performance advantages of Instant Feedback mode.
 
 ```vb
