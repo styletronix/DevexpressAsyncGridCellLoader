@@ -430,13 +430,15 @@ Public Class GridAsyncHelper
                             End If
 
                             'Refresh Grid Cell
-                            item.GridView.GridControl.Invoke(
+                            If item.JobID = Me.CurrentJobID Then
+                                item.GridView.GridControl.BeginInvoke(
                                 Sub()
                                     'Do not refresh grid in case of job ID mismatch
-                                    If item.JobID = Me.CurrentJobID Then
-                                        item.GridView.RefreshRowCell(rowhandle, item.GridView.Columns.ColumnByFieldName("async_" & item.FieldName))
-                                    End If
+
+                                    item.GridView.RefreshRowCell(rowhandle, item.GridView.Columns.ColumnByFieldName("async_" & item.FieldName))
+
                                 End Sub)
+                            End If
                         Else
                             'Row is not loaded yet, re-add task to queue after a short delay
                             Await Tasks.Task.Delay(100).ConfigureAwait(False)
